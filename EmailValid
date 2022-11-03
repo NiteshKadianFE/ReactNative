@@ -1,0 +1,23 @@
+import React from 'react'
+import { useValidation } from 'react-native-form-validator';
+import customValidationMessages from './customValidationMessages';
+
+
+function EmailValid() {
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
+  
+    const { validate, getErrorsInField } = useValidation({
+      state: { email, name },
+      messages: customValidationMessages,
+    });
+    
+    const _validateForm = () => {
+      validate({
+        email: { email: true },
+        name: { required: true }
+      })
+    }
+       }
+
+export default EmailValid
