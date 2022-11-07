@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ImageBackground,
   ScrollView,
@@ -8,10 +8,12 @@ import {
   View,
   Dimensions,
   TextInput,
-  Button,Font,
-  TouchableOpacity
+  Button, Font,
+  TouchableOpacity,
+  KeyboardAvoidingView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { NetworkInfo } from 'react-native-network-info';
 
 
 const screenHeight = Dimensions.get('window').height;
@@ -19,11 +21,42 @@ const screenWidth = Dimensions.get('window').width;
 
 const image = { uri: "https://img.freepik.com/free-vector/mobile-wallpaper-with-fluid-shapes_79603-599.jpg?w=740&t=st=1667455335~exp=1667455935~hmac=51e7b3fe7dbe411178c786668b7ad3534d158c9de92cae1f5eb93fecd868b2f3" }
 
+const Login = ({ navigation }) => {
 
-const Login = ({navigation, props}) => {
+  const [username, onChangeUsername] = useState('');
+  const [password, onChangePassword] = useState('');
+
+
+  const handleSubmit = async () => {
+    // NetworkInfo.getIPAddress().then(ipAddress => {
+    //   console.log(ipAddress);
+    // });
+    console.log('fff')
+    await fetch(
+      `http://192.168.191.147:8082/login?username=spider&password=kadian`,
+
+      {
+        method: 'POST',
+      },
+    )
+      .then(res => {
+        console.log(res.status, 'res.staus', typeof res.status);
+        if (res.status === 200) {
+          flag = true;
+          console.log("matched")
+          navigation.navigate('TodoHome')
+        }
+        // else
+        //   console.log('did not match')
+      })
+      .catch(e => console.log(e));
+  }
 
   return (
-      <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+    >
+      <ScrollView style={styles.container}>
         <ImageBackground source={image} resizeMode="cover" style={styles.image}>
           <View style={styles.welcome}>
             <Text style={styles.text}>TO DO APP</Text>
@@ -33,23 +66,27 @@ const Login = ({navigation, props}) => {
             colors={['rgba(255,255,255, 0.95)', 'rgba(252,252,253,0.8)', 'rgba(79, 206, 249,0.1)']}
             style={styles.contentContainer}
           >
-            <ScrollView
-              contentInsetAdjustmentBehavior="automatic">
-              <View style={styles.view}>
-                <TextInput placeholder='Type your username...' style={styles.input}></TextInput>
-                <TextInput placeholder='Type your password...' style={styles.input}></TextInput>
-                <TouchableOpacity style={styles.button}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'black' }}>Login</Text>
-                </TouchableOpacity>
-                <Text style={styles.innerText}>Don't have an account?</Text>
-                <TouchableOpacity style={styles.button2} onPress={()=> navigation.navigate('SignUp')}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'black' }}>Sign Up</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
+
+            <View style={styles.view}>
+              <TextInput placeholder='Type your username...' style={styles.input} onChangeText={(value) => {
+                onChangeUsername(value);
+              }} value={username}></TextInput>
+              <TextInput placeholder='Type your password...' style={styles.input} onChangeText={(value) => {
+                onChangePassword(value);
+              }} value={password}></TextInput>
+              <TouchableOpacity style={styles.button} onPress={() => { handleSubmit() }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'black' }}>Login</Text>
+              </TouchableOpacity>
+              <Text style={styles.innerText}>Don't have an account?</Text>
+              <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('SignUp')}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'black' }}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+
           </LinearGradient>
         </ImageBackground>
-      </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -94,11 +131,11 @@ const styles = StyleSheet.create({
   },
 
   innerText: {
-      marginTop: 40,
-      fontSize:15,
-      fontWeight:'700',
-      marginLeft:'auto',
-      marginRight:'auto'
+    marginTop: 40,
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 'auto',
+    marginRight: 'auto'
   },
 
   button: {
