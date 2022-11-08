@@ -12,8 +12,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native';
+
 import LinearGradient from 'react-native-linear-gradient';
-import { NetworkInfo } from 'react-native-network-info';
+
 
 
 const screenHeight = Dimensions.get('window').height;
@@ -33,8 +34,7 @@ const Login = ({ navigation }) => {
     // });
     console.log('fff')
     await fetch(
-      `http://192.168.191.147:8082/login?username=spider&password=kadian`,
-
+      `http://192.168.191.147:8082/login?username=${username}&password=${password}`,
       {
         method: 'POST',
       },
@@ -71,7 +71,7 @@ const Login = ({ navigation }) => {
               <TextInput placeholder='Type your username...' style={styles.input} onChangeText={(value) => {
                 onChangeUsername(value);
               }} value={username}></TextInput>
-              <TextInput placeholder='Type your password...' style={styles.input} onChangeText={(value) => {
+              <TextInput placeholder='Type your password...' style={styles.input} secureTextEntry onChangeText={(value) => {
                 onChangePassword(value);
               }} value={password}></TextInput>
               <TouchableOpacity style={styles.button} onPress={() => { handleSubmit() }}>

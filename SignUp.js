@@ -319,6 +319,8 @@ const styles = StyleSheet.create({
     buttonImage: {
         height: 30,
         width: 30,
+        // borderWidth:2,
+        // borderColor: 'black',
         // flex: 1,
         // justifyContent: 'center',
         // alignItems: 'center',

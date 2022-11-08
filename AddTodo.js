@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { TextInput, View, StyleSheet, TouchableOpacity, Text, KeyboardAvoidingView, ScrollView, Button, Dimensions } from 'react-native'
 import DatePicker from 'react-native-date-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { insertNewTodo, queryAllTodos } from './android/Database/Schema/Index';
 
 
 const screenHeight = Dimensions.get('window').height;
@@ -15,7 +16,7 @@ const AddTodo = ({ navigation }) => {
     const [dateString, setDateString] = useState('')
     const [taskDetails, setTaskDetails] = useState('')
     const [getTaskDetails, setGetTaskDetails] = useState('');
-
+    const [type, setType] = useState('work')
 
     //   const saveValueFunction = () => {
     //     // Function to save the value in AsyncStorage
@@ -70,26 +71,54 @@ const AddTodo = ({ navigation }) => {
 
     // }
 
+    const handleWork = () => {
+      setType('work')
+    }
 
+    const handlePersonal = () => {
+      setType('personal')
+    }
 
     const handleSubmit = async () => {
+
+      if(taskDetails)
+      {
       console.log("submitting todo");
-      var todoDetails = {taskDetails: taskDetails, dueDate: dateString}
-      try {
-          var jsonTodo = JSON.stringify(todoDetails);
-          var tempData = await AsyncStorage.getItem("user_id");
-          var userData;
-          if(tempData != null){
-              userData = JSON.parse(tempData);
-          }else{
-              userData = [];
-          }
-          userData.push(todoDetails);
-          await AsyncStorage.setItem("user_id", JSON.stringify(userData));
-          console.log(userData);
-      } catch (error) {
-          console.log(error);
+
+      insertNewTodo({
+        description: taskDetails,
+        expiry: dateString,
+        status: 'false',
+        type: type
+      }).then(resp => {
+        console.log(resp);
+        // queryAllTodos().then(resp => console.log(resp));
+      }).catch(err => {
+        console.log(err)
+      })
+      navigation.navigate('TodoHome');
       }
+
+      else
+      {
+        console.log("title empty")
+      }
+      // var todoDetails = {taskDetails: taskDetails, dueDate: dateString}
+      // try {
+
+      //     var tempData = await AsyncStorage.getItem("user_id");
+      //     var userData;
+      //     if(tempData != null){
+      //         userData = JSON.parse(tempData);
+      //     }else{
+      //         userData = [];
+      //     }
+      //     userData.push(todoDetails);
+      //     await AsyncStorage.setItem("user_id", JSON.stringify(userData));
+      //     console.log(userData);
+      // } catch (error) {
+      //     console.log(error);
+      // }
   }
 
     useEffect(() => {
@@ -105,8 +134,8 @@ const AddTodo = ({ navigation }) => {
                 </View>
                 
                 <View style={styles.contentContainer}>
-                    <TextInput placeholder='Enter Task Details...' style={styles.input} value={taskDetails} onChangeText={(taskDetails) => setTaskDetails(taskDetails)}></TextInput>
-                    <TouchableOpacity title="Open" onPress={() => setOpen(true)}>
+                    <TextInput placeholder='Enter Task Details...' style={styles.input} value={taskDetails} onChangeText={(taskDetails) => {setTaskDetails(taskDetails)}}></TextInput>
+                    <TouchableOpacity title="Open" onPress={() => setOpen(true)} style = {styles.dateButton}>
                         <DatePicker
                             modal
                             open={open}
@@ -123,7 +152,7 @@ const AddTodo = ({ navigation }) => {
                         />
                         <Text>Enter Date</Text>
                     </TouchableOpacity>
-                    {<Text style={styles.date}>{dateString}</Text>}
+                    {/* {<Text style={styles.date}>{dateString}</Text>} */}
                     {dateText ? <Text style={styles.errorText}>{dateText}</Text> : null}
 
                     {/* <TouchableOpacity
@@ -146,10 +175,19 @@ const AddTodo = ({ navigation }) => {
                         {getTaskDetails}
                     </Text>
 
-                    <TouchableOpacity style={styles.button2} onPress={() => { navigation.navigate('TodoHome'); handleSubmit() }}>
+                    <View style = {{flexDirection: 'row'}}>
+                      <TouchableOpacity onPress={()=> handleWork()} style = {(type === "work")?styles.isWork:styles.notWork}>
+                        <Text>Work</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={()=>handlePersonal()} style = {(type === "personal")?styles.isPersonal:styles.notPersonal}>
+                        <Text>Personal</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity style={styles.button2} onPress={() => { handleSubmit() }}>
                         <Text>Submit</Text>
                     </TouchableOpacity>
-                    <Text style={styles.item}>{taskDetails}</Text>
+                    {/* <Text style={styles.item}>{taskDetails}</Text> */}
                 </View>
                 
                 </View>
@@ -172,6 +210,14 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center'
     },
+
+    dateButton: {
+      backgroundColor: 'rgba(237,156,90,255)',
+      padding: 10,
+      borderRadius: 50,
+      margin:10
+      
+    },
   
     welcome: {
       flex: 1,
@@ -184,9 +230,59 @@ const styles = StyleSheet.create({
     text: {
       fontSize: 40,
       fontWeight: "bold",
-      color: 'black'
+      color: 'white'
     },
   
+    isWork: {
+      backgroundColor: 'rgba(27,146,188,255)',
+      width:70,
+      height: 50,
+      alignItems: 'center',
+      padding:15,
+      borderTopLeftRadius:10,
+      borderBottomLeftRadius:10
+    },
+    notWork: {
+      backgroundColor: 'rgba(55,174,208,255)',
+      width:70,
+      height: 50,
+      alignItems: 'center',
+      padding:15,
+      borderTopLeftRadius:10,
+      borderBottomLeftRadius:10,
+      elevation: 10,
+      shadowOffset: {
+      width: 5,
+      height: 5,
+    },
+    shadowOpacity: 0.55,
+    shadowRadius: 3.84,
+    },
+
+    isPersonal: {
+      backgroundColor: 'rgba(27,146,188,255)',width:70,
+      height: 50,
+      alignItems: 'center',
+      paddingVertical:15,
+      borderTopRightRadius:10,
+      borderBottomRightRadius:10
+
+    },
+    notPersonal: {
+      backgroundColor: 'rgba(55,174,208,255)',width:70,
+      height: 50,
+      alignItems: 'center',
+      paddingVertical:15,borderTopRightRadius:10,
+      borderBottomRightRadius:10,
+      elevation: 10,
+      shadowOffset: {
+      width: 5,
+      height: 5,
+    },
+    shadowOpacity: 0.55,
+    shadowRadius: 3.84,
+    },
+
     contentContainer: {
       flex: 4,
       // borderRadius: 20,
@@ -221,7 +317,7 @@ const styles = StyleSheet.create({
   
     button: {
   
-      backgroundColor: 'rgba(121,163,223,255)',
+      backgroundColor: 'rgba(76,26,165,255)',
       borderColor: 'rgba(0,0,0,0.5)',
       borderRadius: 25,
       padding: 10,

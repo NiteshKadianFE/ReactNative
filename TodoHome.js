@@ -4,6 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 // import { Button } from 'react-native-elements';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ScreenHeight } from 'react-native-elements/dist/helpers';
+import { deleteAllTodos, queryAllTodos, updateTodo } from './android/Database/Schema/Index';
+import { Image } from 'react-native-elements';
 
 
 
@@ -15,14 +17,17 @@ function TodoHome({ navigation }) {
 
   // const { dateString } = route.params;
   // const { taskDetails } = route.params;
+  const [page, setPage] = useState('pending');
   const [getTaskDetails, setGetTaskDetails] = useState('');
   const [todoList, setTodoList] = useState();
-
+  const [doneList, setDoneList] = useState();
+  // const [status, setStatus] = useState(true);
 
   useEffect(() => {
-    getItems();
-  }, [todoList]);
+    handleList();
+  }, []);
 
+  var todoListJSON
   // const getValueFunction = () => {
   //     // Function to get the value from AsyncStorage
   //     AsyncStorage.getItem('any_key_here').then(
@@ -33,106 +38,110 @@ function TodoHome({ navigation }) {
   //       // Setting the value in Text
   //     );
   //   };
+  const handlePending = () => {
+    setPage('pending')
 
+  }
 
-  const getItems = async () => {
+  const handleDone = () => {
+    setPage('done')
+  }
+
+  const handleStatus = async (todo) => {
+    await updateTodo(todo);
+  }
+
+  const handleList = async () => {
     try {
-      const todoListJSON = await AsyncStorage.getItem("user_id");
-      setTodoList(JSON.parse(todoListJSON))
+      // const todoListJSON = await AsyncStorage.getItem("user_id");
+      // setTodoList(JSON.parse(todoListJSON))
+
+      todoListJSON = await queryAllTodos();
+      // setTodoList(todoListJSON);
+      setTodoList(todoListJSON.filtered("status=='false'"))
+      setDoneList(todoListJSON.filtered("status=='true'"))
+      // console.log(todoList)
 
       // AsyncStorage.getItem('user_id').then((value) => setTodoList(value));
-      console.log(todoList)
-
+      // console.log(todoList)
     }
     catch (error) {
       console.log(error)
     }
   };
 
+  const deleteItems = async () => {
+    await deleteAllTodos();
+  }
 
+  const renderItem = ({item}) => (
+    <Item todo = {item}></Item>
+  )
 
-  // var initialElements = ['1234','1234235'];
-  // const [exampleState, setExampleState] = useState(initialElements);
-
-  // const addElement = () => {
-  //     var newArray = [...initialElements , dateString];
-  //     setExampleState(newArray);
-  //   }
-
-  //   useEffect(() => {
-  //     var newArray = [...initialElements , {dateString}];
-  //     setExampleState(newArray);
-  //   },[dateString])
-
+  const Item = ({ todo }) => {
+    return (
+      <View style={styles.listItems}>
+        <Image style={styles.buttonImage} source={todo.type === "work" ? { uri: 'https://www.nicepng.com/png/detail/205-2053714_font-work-comments-work-experience-icon-for-resume.png' } : { uri: 'https://www.clipartmax.com/png/middle/440-4405730_contact-us-personal-icon-png.png' }}></Image>
+        <Text style={styles.listDes}>{todo.description}</Text>
+        <Text style={styles.listExp}>{todo.expiry}</Text>
+        <TouchableOpacity onPress={() => {handleStatus(todo);}}>
+          <Text style = {{color: 'black', paddingRight:10, color: 'rgba(75,29,163,255)'}}>Update</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
-    <View  style={styles.container}>
+    <View style={styles.container}>
       {/* <ScrollView stickyHeaderIndices={[1]}> */}
-        <View  style={styles.container}>
-          <View style={styles.welcome}>
-            <Text style={styles.text}>TO DO APP</Text>
-          </View>
-          <View style={styles.contentContainer}>
-            {/* <View style={styles.view}>
-                <TextInput placeholder='Type your username...' style={styles.input}></TextInput>
-                <TextInput placeholder='Type your password...' style={styles.input}></TextInput>
-              </View> */}
-
-            {/* {<Text style={styles.date}>{dateString}</Text>} */}
-            {/* 
-
-                <FlatList
-        data={[
-          {key: dateString}
-        ]}
-        renderItem={({item}) => <Text style={styles.item}>{item.key}</Text>}/> */}
-
-            {/* <FlatList
-            keyExtractor={item => item.dateString}
-            data={exampleState}
-            renderItem={({item}) =>  <Text style={styles.item}>{dateString}</Text>}/>  */}
-            {/* <Text style={styles.item}>{dateString}</Text> */}
-            {/* <Text style={styles.item}>{taskDetails}</Text> */}
-
-            {/* <Button
-          title="Add element"
-          onPress={addElement} /> */}
-            {/* <TouchableOpacity
-          onPress={getValueFunction}
-          style={styles.buttonStyle}>
-          <Text style={styles.buttonTextStyle}>
-            GET VALUE
-          </Text>
-        </TouchableOpacity> */}
-
-            <TouchableOpacity
-              onPress={getItems}
-              style={styles.button}>
-              <Text>
-                GET ITEMS
-              </Text>
-            </TouchableOpacity>
-
-
-            <FlatList data={todoList} renderItem={({ item }) => {
-              return <Text>{item.taskDetails}</Text>
-            }} />
-
-            {/* 
-        // <FlatList data = {getTaskDetails} renderItem = {({item}) => {
-        //     return <Text>{item.taskDetails}</Text>
-        // }} /> */}
-
-          </View>
-          <View style={styles.links}>
-            <Text style={{ width: 300, height: 60, color: 'black', marginLeft: 250, marginTop: 35 , fontWeight: 'bold'}}> TODO</Text>
-          </View>
+      <View style={styles.container}>
+        <View style={styles.welcome}>
+          <Text style={styles.text}>TO DO APP</Text>
         </View>
+        <View style={styles.contentContainer}>
+         
 
-        <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('AddTodo')}>
-              <Text style={{ fontSize: 100, margin: -33 }}>+</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleList}
+            style={styles.button}>
+            <Text>
+              GET ITEMS
+            </Text>
+          </TouchableOpacity>
+
+          {/* 
+            <FlatList data={todoList} style = {styles.flatList} renderItem={({ item }) => {
+              return <Text style = {styles.listItems}>{item.description}               {item.expiry}</Text>
+            }} /> */}
+
+
+          <FlatList data={page === "pending" ? todoList : doneList} renderItem={renderItem} />
+
+
+          <TouchableOpacity
+            onPress={deleteItems}
+            style={styles.button}>
+            <Text>
+              Delete All Tasks
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+        <View style={styles.links}>
+          <TouchableOpacity onPress={() => handlePending()}>
+            <Text style={page === "pending" ? styles.pending : styles.notPending}> PENDING</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDone()}>
+            <Text style={page === "done" ? styles.done : styles.notDone}> DONE</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('AddTodo')}>
+        <Text style={{ fontSize: 100, margin: -33, color: 'white', fontWeight: '100' }}>+</Text>
+      </TouchableOpacity>
       {/* </ScrollView> */}
+
     </View>
   )
 }
@@ -156,29 +165,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     //   borderWidth: 2,
   },
+  flatList: {
+    // alignContent: 'center',
+    // justifyContent: 'center'
+    // alignItems: 'center'
+  },
 
   text: {
     fontSize: 40,
     fontWeight: "bold",
-    color: 'black'
+    color: 'white'
   },
+
+  pending: { width: 100, height: 60, right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1, color: 'rrgba(76,26,165,255)ed' },
+
+  notPending: { width: 100, height: 60, color: 'black', right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1 },
+
+
+  done: { width: 80, height: 60, right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1, color: 'rgba(76,26,165,255)' },
+
+  notDone: { width: 80, height: 60, color: 'black', right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1 },
+
 
   links: {
     position: 'absolute',
+    flex: 1,
+    flexDirection: 'row',
     // borderWidth:2,
-    top: 230,
+    top: 185,
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 20,
     elevation: 20,
     shadowColor: 'black',
     justifyContent: 'center',
-    alignItems: 'center',
-    height: 60,
-    width: 250,
+    // alignItems: 'center',
+    // height: 85,
+    width: 280,
+  },
+
+  listDes: {
+    flex: 1,
+    fontWeight: 'bold',
+    fontSize: 15,
+    color: 'black'
+  },
+
+  listExp: {
+    flex: 1,
+    color: 'black'
+
   },
 
   contentContainer: {
-    flex: 3,
+    flex: 5,
     // borderRadius: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -201,6 +240,31 @@ const styles = StyleSheet.create({
 
   },
 
+  listItems: {
+    backgroundColor: 'white',
+    margin: 5,
+    fontSize: 18,
+    borderRadius: 8,
+    height: 100,
+    width: 350,
+    color: 'black',
+    // alignItems: 'center',
+    // justifyContent: 'center',
+    paddingVertical: 35,
+    borderLeftWidth: 4,
+    borderLeftColor: 'rgba(76,26,165,255)',
+    elevation: 3,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    flex: 1,
+    flexDirection: 'row'
+
+  },
+
   innerText: {
     marginTop: 40,
     fontSize: 15,
@@ -217,14 +281,14 @@ const styles = StyleSheet.create({
     padding: 10,
     // borderWidth: 1,
     width: 150,
-    height:50,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     // marginLeft: 'auto',
     // marginRight: 'auto',
     marginBottom: 10,
     marginTop: 20,
-    
+
   },
 
   button2: {
@@ -269,6 +333,16 @@ const styles = StyleSheet.create({
     width: screenWidth,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  buttonImage: {
+    height: 30,
+    width: 33,
+    flex: 1,
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    marginRight: 15,
+    marginLeft: 15
   },
 
 });
