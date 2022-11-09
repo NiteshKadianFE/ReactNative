@@ -13,9 +13,9 @@ import { Image } from 'react-native-elements';
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
-function TodoHome({ navigation }) {
+function TodoHome({ navigation, route }) {
 
-  // const { dateString } = route.params;
+  const { username } = route.params;
   // const { taskDetails } = route.params;
   const [page, setPage] = useState('pending');
   const [getTaskDetails, setGetTaskDetails] = useState('');
@@ -27,7 +27,7 @@ function TodoHome({ navigation }) {
     handleList();
   }, []);
 
-  var todoListJSON
+  // var todoListJSON
   // const getValueFunction = () => {
   //     // Function to get the value from AsyncStorage
   //     AsyncStorage.getItem('any_key_here').then(
@@ -40,7 +40,6 @@ function TodoHome({ navigation }) {
   //   };
   const handlePending = () => {
     setPage('pending')
-
   }
 
   const handleDone = () => {
@@ -49,17 +48,24 @@ function TodoHome({ navigation }) {
 
   const handleStatus = async (todo) => {
     await updateTodo(todo);
+    handleList();
+  }
+
+  const handleLogout = async() => {
+    await AsyncStorage.removeItem("userDetails")
+    navigation.navigate('Login')
   }
 
   const handleList = async () => {
     try {
+      // console.log("aaaaaaaaaaa")
       // const todoListJSON = await AsyncStorage.getItem("user_id");
       // setTodoList(JSON.parse(todoListJSON))
-
-      todoListJSON = await queryAllTodos();
+      //await queryAllTodos();
+      const todoListJSON = await queryAllTodos();
       // setTodoList(todoListJSON);
-      setTodoList(todoListJSON.filtered("status=='false'"))
-      setDoneList(todoListJSON.filtered("status=='true'"))
+      setTodoList(todoListJSON.filtered("status=='false'").filtered(`user=="${username}"`))
+      setDoneList(todoListJSON.filtered("status=='true'").filtered(`user=="${username}"`))
       // console.log(todoList)
 
       // AsyncStorage.getItem('user_id').then((value) => setTodoList(value));
@@ -72,6 +78,7 @@ function TodoHome({ navigation }) {
 
   const deleteItems = async () => {
     await deleteAllTodos();
+    handleList();
   }
 
   const renderItem = ({item}) => (
@@ -97,9 +104,10 @@ function TodoHome({ navigation }) {
       <View style={styles.container}>
         <View style={styles.welcome}>
           <Text style={styles.text}>TO DO APP</Text>
+        <Text style={styles.hello}>Hello, {username}</Text>
         </View>
         <View style={styles.contentContainer}>
-         
+{/*          
 
           <TouchableOpacity
             onPress={handleList}
@@ -107,7 +115,7 @@ function TodoHome({ navigation }) {
             <Text>
               GET ITEMS
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* 
             <FlatList data={todoList} style = {styles.flatList} renderItem={({ item }) => {
@@ -118,11 +126,19 @@ function TodoHome({ navigation }) {
           <FlatList data={page === "pending" ? todoList : doneList} renderItem={renderItem} />
 
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={deleteItems}
             style={styles.button}>
             <Text>
               Delete All Tasks
+            </Text>
+          </TouchableOpacity> */}
+          
+          <TouchableOpacity
+            onPress={handleLogout}
+            style={styles.button}>
+            <Text style = {styles.hello}>
+              Logout
             </Text>
           </TouchableOpacity>
 
@@ -137,7 +153,7 @@ function TodoHome({ navigation }) {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('AddTodo')}>
+      <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('AddTodo', {username})}>
         <Text style={{ fontSize: 100, margin: -33, color: 'white', fontWeight: '100' }}>+</Text>
       </TouchableOpacity>
       {/* </ScrollView> */}
@@ -160,9 +176,10 @@ const styles = StyleSheet.create({
 
   welcome: {
     flex: 1,
-    marginTop: 100,
+    marginTop: 50,
     //   justifyContent: 'center',
     alignItems: 'center',
+    marginBottom:50
     //   borderWidth: 2,
   },
   flatList: {
@@ -174,17 +191,24 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 40,
     fontWeight: "bold",
+    color: 'white',
+    marginBottom: 20
+  },
+
+  hello: {
+    fontSize: 20,
+    fontWeight: "bold",
     color: 'white'
   },
 
   pending: { width: 100, height: 60, right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1, color: 'rrgba(76,26,165,255)ed' },
 
-  notPending: { width: 100, height: 60, color: 'black', right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1 },
+  notPending: { width: 100, height: 60, right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1 },
 
 
   done: { width: 80, height: 60, right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1, color: 'rgba(76,26,165,255)' },
 
-  notDone: { width: 80, height: 60, color: 'black', right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1 },
+  notDone: { width: 80, height: 60, right: 1, top: 15, fontWeight: 'bold', fontSize: 20, flex: 1 },
 
 
   links: {
@@ -275,7 +299,7 @@ const styles = StyleSheet.create({
 
   button: {
 
-    backgroundColor: 'rgba(121,163,223,255)',
+    backgroundColor: 'rgba(75,29,163,255)',
     borderColor: 'rgba(0,0,0,0.5)',
     borderRadius: 25,
     padding: 10,
@@ -285,9 +309,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // marginLeft: 'auto',
-    // marginRight: 'auto',
-    marginBottom: 10,
-    marginTop: 20,
+    marginRight: 180,
+    marginBottom: 0,
+    marginTop: 30,
 
   },
 
@@ -309,7 +333,7 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     position: 'absolute',
     right: 35,
-    top: 650
+    top: 700
   },
 
   input: {

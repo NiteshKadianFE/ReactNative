@@ -1,6 +1,6 @@
 import Realm from "realm";
 
-export const TODO_SCHEMA = "Todo";
+export const TODO_SCHEMA = "Todob";
 
 const TodoSchema = {
     name: TODO_SCHEMA,
@@ -9,7 +9,8 @@ const TodoSchema = {
       description: "string",
       expiry: "string?",
       status: 'string?',
-      type: 'string?'
+      type: 'string?',
+      user: 'string?'
     },
     primaryKey: "description",
 };

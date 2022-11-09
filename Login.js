@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ImageBackground,
   ScrollView,
@@ -27,29 +28,88 @@ const Login = ({ navigation }) => {
   const [username, onChangeUsername] = useState('');
   const [password, onChangePassword] = useState('');
 
+  useEffect(() => {
+    persist();
+  }, []);
 
-  const handleSubmit = async () => {
-    // NetworkInfo.getIPAddress().then(ipAddress => {
-    //   console.log(ipAddress);
-    // });
-    console.log('fff')
+  async function persist(){
+    const temp = await AsyncStorage.getItem("userDetails")
+    console.log(temp)
+      if(temp!=null){
+         var userData = JSON.parse(temp);
+         console.log(userData)
+        handleSubmit(userData.username, userData.password);
+      }
+  }
+
+  const handleSubmit = async (username, password) => {
+
+    console.log(username);
+    console.log(password);
+    var userDetails = {username: username, password: password}
     await fetch(
-      `http://192.168.191.147:8082/login?username=${username}&password=${password}`,
+      `http://192.168.28.147:8082/login?username=${username}&password=${password}`,
       {
-        method: 'POST',
+        method: 'POST'
       },
     )
       .then(res => {
-        console.log(res.status, 'res.staus', typeof res.status);
+        console.log(res.status);
         if (res.status === 200) {
-          flag = true;
-          console.log("matched")
-          navigation.navigate('TodoHome')
+          AsyncStorage.setItem('userDetails', JSON.stringify(userDetails))
+          navigation.navigate('TodoHome', {username: username})
+          onChangeUsername("")
+          onChangePassword("")
+        }else{
+          // Alert.alert("Wrong Password")
         }
-        // else
-        //   console.log('did not match')
       })
       .catch(e => console.log(e));
+  
+    // console.log('fff')
+    // var userData;
+
+    //   var loginDetails = {username: username, password: password}
+    //   try {
+
+    //       var tempData = await AsyncStorage.getItem("user_id");
+    //       if(tempData != null){
+    //           userData = JSON.parse(tempData);
+    //       }else{
+    //           userData = [];
+    //       }
+    //       userData.push(loginDetails);
+    //       await AsyncStorage.setItem("user_id", JSON.stringify(userData));
+    //       console.log(userData);
+    //   } catch (error) {
+    //       console.log(error);
+    //   }
+
+
+    //   if(userData)
+    //   {
+    //     const loginJSON = await AsyncStorage.getItem("user_id");
+    //     onChangePassword(JSON.parse(loginJSON.password))
+    //     onChangeUsername(JSON.parse(loginJSON.username))
+    //   }
+
+    //   await fetch(
+    //     `http://192.168.28.147:8082/login?username=${username}&password=${password}`,
+    //     {
+    //       method: 'POST',
+    //     },
+    //   )
+    //     .then(res => {
+    //       console.log(res.status, 'res.staus', typeof res.status);
+    //       if (res.status === 200) {
+    //         flag = true;
+    //         console.log("matched")
+    //         navigation.navigate('TodoHome', {username})
+    //       }
+    //       // else
+    //       //   console.log('did not match')
+    //     })
+    //     .catch(e => console.log(e));
   }
 
   return (
@@ -74,7 +134,7 @@ const Login = ({ navigation }) => {
               <TextInput placeholder='Type your password...' style={styles.input} secureTextEntry onChangeText={(value) => {
                 onChangePassword(value);
               }} value={password}></TextInput>
-              <TouchableOpacity style={styles.button} onPress={() => { handleSubmit() }}>
+              <TouchableOpacity style={styles.button} onPress={() => { handleSubmit(username, password) }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'black' }}>Login</Text>
               </TouchableOpacity>
               <Text style={styles.innerText}>Don't have an account?</Text>

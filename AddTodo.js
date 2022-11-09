@@ -8,7 +8,7 @@ import { insertNewTodo, queryAllTodos } from './android/Database/Schema/Index';
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
-const AddTodo = ({ navigation }) => {
+const AddTodo = ({ navigation, route }) => {
 
     const [date, setDate] = useState(new Date())
     const [open, setOpen] = useState(false)
@@ -17,6 +17,9 @@ const AddTodo = ({ navigation }) => {
     const [taskDetails, setTaskDetails] = useState('')
     const [getTaskDetails, setGetTaskDetails] = useState('');
     const [type, setType] = useState('work')
+   
+    const { username } = route.params;
+
 
     //   const saveValueFunction = () => {
     //     // Function to save the value in AsyncStorage
@@ -89,14 +92,15 @@ const AddTodo = ({ navigation }) => {
         description: taskDetails,
         expiry: dateString,
         status: 'false',
-        type: type
+        type: type,
+        user: `${username}`,
       }).then(resp => {
         console.log(resp);
         // queryAllTodos().then(resp => console.log(resp));
       }).catch(err => {
         console.log(err)
       })
-      navigation.navigate('TodoHome');
+      navigation.navigate('TodoHome', {username});
       }
 
       else
@@ -191,6 +195,9 @@ const AddTodo = ({ navigation }) => {
                 </View>
                 
                 </View>
+                <TouchableOpacity style={styles.button3} onPress={() => navigation.navigate('TodoHome', {username})}>
+        <Text style={{ fontSize: 20, color: 'white', fontWeight: '300' }}>Back</Text>
+      </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>
     )
@@ -327,7 +334,8 @@ const styles = StyleSheet.create({
       marginLeft: 'auto',
       marginRight: 'auto',
       marginBottom: 10,
-      marginTop: 20,
+      marginTop: 0,
+      
     },
   
     button2: {
@@ -342,15 +350,46 @@ const styles = StyleSheet.create({
       marginLeft: 'auto',
       marginRight: 'auto',
       marginBottom: 20,
-      marginTop: 15,
+      marginTop: 85,
     },
   
+
+  button3: {
+
+    backgroundColor: 'rgba(75,29,163,255)',
+    borderColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 50,
+    // padding: 10,
+    // borderWidth: 2,
+    width: 60,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // marginLeft: 'auto',
+    // marginRight: 'auto',
+    marginBottom: 20,
+    marginTop: 15,
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    position: 'absolute',
+    right: 340,
+    top: 1,
+    elevation: 10,
+      shadowOffset: {
+      width: 5,
+      height: 5,
+    },
+    shadowOpacity: 0.55,
+    shadowRadius: 3.84,
+  },
+
     input: {
       height: 40,
       width: 250,
       margin: 12,
       borderWidth: 2,
       padding: 10,
+      color: 'black',
       // marginLeft: 70,
       // marginRight: 70,
       marginLeft: 'auto',
